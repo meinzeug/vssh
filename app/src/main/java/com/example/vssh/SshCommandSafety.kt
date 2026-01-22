@@ -53,10 +53,8 @@ object SshCommandSafety {
         if (!result.contains("--no-pager")) {
             result += " --no-pager"
         }
-        val hasRange = result.contains("--since") || result.contains(" -S ") ||
-            result.contains("--until") || result.contains(" -U ")
         val hasLimit = result.contains(" -n ") || result.contains("--lines")
-        if (!hasRange && !hasLimit) {
+        if (!hasLimit) {
             result += " -n 200"
         }
         return result
