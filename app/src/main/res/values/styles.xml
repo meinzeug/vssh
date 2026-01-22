@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.Vssh" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#1B5E20</item>
+        <item name="colorPrimaryVariant">#003300</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#FFB300</item>
+        <item name="colorSecondaryVariant">#C68400</item>
+        <item name="colorOnSecondary">#000000</item>
+    </style>
+</resources>

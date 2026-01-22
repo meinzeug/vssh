@@ -1,0 +1,26 @@
+# Projekt AGENTS
+
+## Ziel
+Native Android-SSH-Client, der eine Shell-Session über Smartphone-Eingabe steuert. Später wird STT (Speech-to-Text) integriert, damit Kommandos gesprochen werden können.
+
+## Struktur
+- `app/src/main/java/com/example/vssh/MainActivity.kt`: UI, Button-Logik, Terminal-Ausgabe.
+- `app/src/main/java/com/example/vssh/SshClient.kt`: SSH-Verbindung, Shell-Channel, IO-Streams.
+- `app/src/main/java/com/example/vssh/SpeechInput.kt`: STT-Interface + Android SpeechRecognizer-Implementierung.
+- `app/src/main/res/layout/activity_main.xml`: Terminal-UI mit Connect/Send/Voice.
+- `app/src/main/AndroidManifest.xml`: Internet + Mikrofon-Permission.
+
+## Entwicklungs-Workflow
+1) Änderungen an SSH-Logik in `SshClient.kt` halten, UI nur für Darstellung.
+2) Keine Credentials persistieren; später auf Key-Auth umstellen.
+3) Für STT eine Implementierung von `SpeechInputController` ergänzen und in `MainActivity` instanziieren.
+4) Neue Features zuerst in kleinen UI-Schritten testen (Verbinden, Befehl senden, Ausgabe prüfen).
+5) Nach erfolgreicher Arbeit: `git status` prüfen, committen und pushen.
+
+## STT-Erweiterung (geplant)
+- SpeechRecognizer liefert Text direkt in `commandInput` und triggert `sendCommand()`.
+- Optional: Push-to-talk und visuelles Feedback bei aktivem Zuhören.
+
+## Hinweise
+- Shell-Output wird aktuell als Text appended. Für umfangreiche Sessions später Paging oder Buffer-Strategie einplanen.
+- Für Produktion: Host-Key-Checking und sichere Key-Verwaltung ergänzen.

@@ -1,0 +1,141 @@
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0B0F0B"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="vssh"
+            android:textColor="#A5D6A7"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/hostInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Host (z.B. 192.168.1.10)"
+                android:inputType="textUri"
+                android:textColor="#E8F5E9"
+                android:textColorHint="#78909C"
+                android:backgroundTint="#4CAF50" />
+
+            <EditText
+                android:id="@+id/portInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Port (Standard 22)"
+                android:inputType="number"
+                android:textColor="#E8F5E9"
+                android:textColorHint="#78909C"
+                android:backgroundTint="#4CAF50"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/userInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="User"
+                android:inputType="textPersonName"
+                android:textColor="#E8F5E9"
+                android:textColorHint="#78909C"
+                android:backgroundTint="#4CAF50"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/passwordInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Passwort"
+                android:inputType="textPassword"
+                android:textColor="#E8F5E9"
+                android:textColorHint="#78909C"
+                android:backgroundTint="#4CAF50"
+                android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/connectButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Verbinden" />
+
+                <Button
+                    android:id="@+id/disconnectButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="Trennen" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/terminalOutput"
+            android:layout_width="match_parent"
+            android:layout_height="360dp"
+            android:layout_marginTop="16dp"
+            android:background="#101510"
+            android:padding="12dp"
+            android:textColor="#C8E6C9"
+            android:textSize="13sp"
+            android:typeface="monospace"
+            android:textIsSelectable="true" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/commandInput"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Command..."
+                android:inputType="text"
+                android:textColor="#E8F5E9"
+                android:textColorHint="#78909C"
+                android:backgroundTint="#4CAF50" />
+
+            <Button
+                android:id="@+id/sendButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Senden" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/voiceButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:enabled="false"
+            android:text="Voice (STT)" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

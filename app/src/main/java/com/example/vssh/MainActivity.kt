@@ -1,0 +1,192 @@
+package com.example.vssh
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.widget.NestedScrollView
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+
+class MainActivity : AppCompatActivity() {
+    private val maxTerminalChars = 20000
+    private val recordAudioRequestCode = 501
+    private lateinit var sshClient: SshClient
+    private lateinit var scrollContainer: NestedScrollView
+    private lateinit var terminalOutput: TextView
+    private lateinit var hostInput: EditText
+    private lateinit var portInput: EditText
+    private lateinit var userInput: EditText
+    private lateinit var passwordInput: EditText
+    private lateinit var commandInput: EditText
+    private lateinit var connectButton: Button
+    private lateinit var disconnectButton: Button
+    private lateinit var sendButton: Button
+    private lateinit var voiceButton: Button
+    private lateinit var speechController: SpeechInputController
+    private var pendingVoiceStart = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        scrollContainer = findViewById(R.id.scrollContainer)
+        terminalOutput = findViewById(R.id.terminalOutput)
+        hostInput = findViewById(R.id.hostInput)
+        portInput = findViewById(R.id.portInput)
+        userInput = findViewById(R.id.userInput)
+        passwordInput = findViewById(R.id.passwordInput)
+        commandInput = findViewById(R.id.commandInput)
+        connectButton = findViewById(R.id.connectButton)
+        disconnectButton = findViewById(R.id.disconnectButton)
+        sendButton = findViewById(R.id.sendButton)
+        voiceButton = findViewById(R.id.voiceButton)
+
+        terminalOutput.movementMethod = ScrollingMovementMethod()
+
+        speechController = AndroidSpeechInputController(this)
+        sshClient = SshClient(
+            scope = lifecycleScope,
+            onOutput = { text -> appendOutput(text) },
+            onStatus = { status -> appendOutput("\n[$status]\n") }
+        )
+
+        toggleUi(connected = false, inProgress = false)
+        connectButton.setOnClickListener { connect() }
+        disconnectButton.setOnClickListener { disconnect() }
+        sendButton.setOnClickListener { sendCommand() }
+
+        voiceButton.setOnClickListener { startVoiceInput() }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        speechController.release()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == recordAudioRequestCode) {
+            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            if (granted && pendingVoiceStart) {
+                pendingVoiceStart = false
+                startVoiceInput()
+            } else if (!granted) {
+                pendingVoiceStart = false
+                appendOutput("\n[Mikrofon-Berechtigung verweigert]\n")
+            }
+        }
+    }
+
+    private fun startVoiceInput() {
+        if (!speechController.isAvailable()) {
+            appendOutput("\n[STT ist nicht verfügbar]\n")
+            return
+        }
+
+        if (!hasRecordAudioPermission()) {
+            pendingVoiceStart = true
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                recordAudioRequestCode
+            )
+            return
+        }
+
+        speechController.startListening(
+            onResult = { text ->
+                commandInput.setText(text)
+                sendCommand()
+            },
+            onError = { error ->
+                appendOutput("\n[STT Fehler: $error]\n")
+            }
+        )
+    }
+
+    private fun hasRecordAudioPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun connect() {
+        val host = hostInput.text.toString().trim()
+        val port = portInput.text.toString().trim().ifEmpty { "22" }.toIntOrNull() ?: 22
+        val user = userInput.text.toString().trim()
+        val password = passwordInput.text.toString()
+
+        if (host.isBlank() || user.isBlank()) {
+            appendOutput("\n[Bitte Host und User angeben]\n")
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+                toggleUi(connected = false, inProgress = true)
+                sshClient.connect(SshConfig(host, port, user, password))
+                toggleUi(connected = true, inProgress = false)
+            } catch (ex: Exception) {
+                appendOutput("\n[Fehler: ${ex.message}]\n")
+                toggleUi(connected = false, inProgress = false)
+            }
+        }
+    }
+
+    private fun disconnect() {
+        lifecycleScope.launch {
+            try {
+                sshClient.disconnect()
+            } catch (ex: Exception) {
+                appendOutput("\n[Fehler: ${ex.message}]\n")
+            } finally {
+                toggleUi(connected = false, inProgress = false)
+            }
+        }
+    }
+
+    private fun sendCommand() {
+        val command = commandInput.text.toString().trim()
+        if (command.isEmpty()) return
+        commandInput.setText("")
+
+        lifecycleScope.launch {
+            try {
+                sshClient.sendCommand(command)
+                appendOutput("\n$command\n")
+            } catch (ex: Exception) {
+                appendOutput("\n[Fehler: ${ex.message}]\n")
+            }
+        }
+    }
+
+    private fun appendOutput(text: String) {
+        runOnUiThread {
+            terminalOutput.append(text)
+            if (terminalOutput.length() > maxTerminalChars) {
+                val trimmed = terminalOutput.text.takeLast(maxTerminalChars)
+                terminalOutput.text = trimmed
+            }
+            scrollContainer.post { scrollContainer.fullScroll(NestedScrollView.FOCUS_DOWN) }
+        }
+    }
+
+    private fun toggleUi(connected: Boolean, inProgress: Boolean) {
+        connectButton.isEnabled = !connected && !inProgress
+        disconnectButton.isEnabled = connected && !inProgress
+        sendButton.isEnabled = connected && !inProgress
+        voiceButton.isEnabled = connected && !inProgress && speechController.isAvailable()
+    }
+}
