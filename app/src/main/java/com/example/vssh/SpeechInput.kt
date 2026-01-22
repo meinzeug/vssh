@@ -68,7 +68,19 @@ class AndroidSpeechInputController(context: Context) : SpeechInputController {
 
             override fun onError(error: Int) {
                 isListening = false
-                handler.post { onError("STT Fehlercode: $error") }
+                val message = when (error) {
+                    SpeechRecognizer.ERROR_AUDIO -> "Audio-Fehler"
+                    SpeechRecognizer.ERROR_CLIENT -> "Client-Fehler"
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Keine Mikrofon-Berechtigung"
+                    SpeechRecognizer.ERROR_NETWORK -> "Netzwerk-Fehler"
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Netzwerk-Timeout"
+                    SpeechRecognizer.ERROR_NO_MATCH -> "Keine Sprache erkannt"
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "STT ist beschäftigt"
+                    SpeechRecognizer.ERROR_SERVER -> "Server-Fehler"
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Keine Sprache erkannt"
+                    else -> "STT Fehlercode: $error"
+                }
+                handler.post { onError(message) }
             }
 
             override fun onResults(results: Bundle?) {
