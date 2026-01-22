@@ -49,9 +49,10 @@ class ChatActivity : AppCompatActivity() {
         toolsCheck = findViewById(R.id.toolsCheck)
 
         val systemPrompt = """
-            Du bist ein hilfreicher Linux-Admin-Assistent. Gib klare, sichere Schritt-für-Schritt-Anweisungen.
-            Wenn Befehle gefährlich sind, warne. Erkläre kurz, was der Befehl macht.
-            Wenn du konkrete Befehle vorschlägst, gib sie in einem Code-Block aus.
+            Du bist vssh, ein Voice-First Linux-Admin-Assistent für die Server-Konsole.
+            Antworte klar, kurz und umsetzbar. Wenn der Nutzer etwas ausführen will, liefere
+            die passenden Befehle in einem Code-Block (bash). Erkläre in 1-2 Sätzen, was der
+            Befehl macht. Bei riskanten Aktionen: Warnung + Rückfrage.
         """.trimIndent()
         messages.add(ChatMessage("system", systemPrompt))
 
@@ -176,17 +177,31 @@ class ChatActivity : AppCompatActivity() {
               "final": "kurze Erklärung, was du tust oder was du brauchst"
             }
             Regeln:
-            - commands darf leer sein.
+            - commands darf leer sein (dann frage nach Details).
             - Nur sichere, lesende Befehle (keine Writes, keine Pipes/&&/;).
             - Erlaubte Befehle: journalctl, last/lastb, who, w, uptime,
               systemctl status/--failed, df -h, free -m, ss -tulpn, netstat -tulpn,
               ps aux, top -b -n 1, sowie cat/tail/head/grep/sed/awk auf /var/log/*.
         """.trimIndent()
 
-        val toolRequest = listOf(
-            ChatMessage("system", toolSystem),
-            ChatMessage("user", userText)
-        )
+        val toolRequest = buildList {
+            add(ChatMessage("system", toolSystem))
+            // Optional: kurze Konversation für Kontext
+            val context = messages
+                .filter { it.role != "system" }
+                .takeLast(6)
+                .joinToString("\n") { "${it.role}: ${it.content.take(400)}" }
+            if (context.isNotBlank()) {
+                add(ChatMessage("user", "Kontext:\n$context"))
+            }
+            if (includeOutputCheck.isChecked) {
+                val output = SshBridge.getRecentOutput().takeLast(2000).trim()
+                if (output.isNotBlank()) {
+                    add(ChatMessage("user", "SSH Output (latest):\n$output"))
+                }
+            }
+            add(ChatMessage("user", userText))
+        }
         val toolReply = withTimeout(35_000) {
             client.chat(baseUrl, apiKey, model, toolRequest)
         }
@@ -224,6 +239,7 @@ class ChatActivity : AppCompatActivity() {
         appendMessageBubble(isUser = false, text = "Führe ${safeCommands.size} SSH‑Kommandos aus …", command = null)
         val outputs = mutableListOf<Pair<String, String>>()
         for (cmd in safeCommands) {
+            appendMessageBubble(isUser = false, text = "→ $cmd", command = null)
             val out = try {
                 val result = SshBridge.runCommand(cmd)
                 if (result.isBlank()) "[Keine Ausgabe]" else result

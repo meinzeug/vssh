@@ -27,7 +27,11 @@ object SshBridge {
 
     suspend fun runCommand(command: String): String {
         val exec = execFn ?: return ""
-        return exec(command)
+        val output = exec(command)
+        if (output.isNotBlank()) {
+            appendOutput("\n$command\n$output\n")
+        }
+        return output
     }
 
     fun appendOutput(text: String) {
