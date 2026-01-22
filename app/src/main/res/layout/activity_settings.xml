@@ -1,0 +1,59 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/vssh_black">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="OpenRouter Settings"
+        android:textColor="@color/vssh_white"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-condensed"
+        android:letterSpacing="0.06" />
+
+    <EditText
+        android:id="@+id/apiKeyInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="API Key"
+        android:inputType="textPassword"
+        android:textColor="@color/vssh_white"
+        android:textColorHint="@color/vssh_gray"
+        android:backgroundTint="@color/vssh_red" />
+
+    <EditText
+        android:id="@+id/modelInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Model (z.B. openai/gpt-4o-mini)"
+        android:inputType="text"
+        android:textColor="@color/vssh_white"
+        android:textColorHint="@color/vssh_gray"
+        android:backgroundTint="@color/vssh_red" />
+
+    <EditText
+        android:id="@+id/baseUrlInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Base URL (Standard https://openrouter.ai/api/v1)"
+        android:inputType="textUri"
+        android:textColor="@color/vssh_white"
+        android:textColorHint="@color/vssh_gray"
+        android:backgroundTint="@color/vssh_red" />
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Speichern"
+        android:backgroundTint="@color/vssh_red"
+        android:textColor="@color/vssh_white" />
+</LinearLayout>

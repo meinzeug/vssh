@@ -1,10 +1,11 @@
 <resources>
     <style name="Theme.Vssh" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">#1B5E20</item>
-        <item name="colorPrimaryVariant">#003300</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#FFB300</item>
-        <item name="colorSecondaryVariant">#C68400</item>
-        <item name="colorOnSecondary">#000000</item>
+        <item name="colorPrimary">@color/vssh_red</item>
+        <item name="colorPrimaryVariant">@color/vssh_red</item>
+        <item name="colorOnPrimary">@color/vssh_white</item>
+        <item name="colorSecondary">@color/vssh_red</item>
+        <item name="colorSecondaryVariant">@color/vssh_red</item>
+        <item name="colorOnSecondary">@color/vssh_white</item>
+        <item name="android:windowBackground">@color/vssh_black</item>
     </style>
 </resources>

@@ -7,8 +7,18 @@ Native Android-SSH-Client, der eine Shell-Session über Smartphone-Eingabe steue
 - `app/src/main/java/com/example/vssh/MainActivity.kt`: UI, Button-Logik, Terminal-Ausgabe.
 - `app/src/main/java/com/example/vssh/SshClient.kt`: SSH-Verbindung, Shell-Channel, IO-Streams.
 - `app/src/main/java/com/example/vssh/SpeechInput.kt`: STT-Interface + Android SpeechRecognizer-Implementierung.
+- `app/src/main/java/com/example/vssh/ChatActivity.kt`: OpenRouter-Chat-Agent UI.
+- `app/src/main/java/com/example/vssh/SettingsActivity.kt`: OpenRouter Settings (API Key, Model, Base URL).
+- `app/src/main/java/com/example/vssh/OpenRouterClient.kt`: OpenRouter HTTP-Client.
+- `app/src/main/java/com/example/vssh/SettingsStore.kt`: Persistenz für OpenRouter Settings.
+- `app/src/main/java/com/example/vssh/SshBridge.kt`: Bridge zwischen Agent und SSH-Session.
+- `app/src/main/java/com/example/vssh/MessageBubbleView.kt`: Chat-Bubbles inkl. Codeblocks + Send-to-SSH.
+- `app/src/main/java/com/example/vssh/SshCommandSafety.kt`: Allowlist für sichere SSH-Commands im Tools-Flow.
 - `app/src/main/res/layout/activity_main.xml`: Terminal-UI mit Connect/Send/Voice.
+- `app/src/main/res/layout/activity_chat.xml`: Chat-UI.
+- `app/src/main/res/layout/activity_settings.xml`: Settings-UI.
 - `app/src/main/AndroidManifest.xml`: Internet + Mikrofon-Permission.
+- `docs/device-testing.md`: ADB-Testablauf + aktuelle Testergebnisse.
 
 ## Entwicklungs-Workflow
 1) Änderungen an SSH-Logik in `SshClient.kt` halten, UI nur für Darstellung.

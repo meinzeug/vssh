@@ -1,8 +1,10 @@
 package com.example.vssh
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.text.InputType
 import android.text.method.ScrollingMovementMethod
 import android.widget.Button
 import android.widget.EditText
@@ -29,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var disconnectButton: Button
     private lateinit var sendButton: Button
     private lateinit var voiceButton: Button
+    private lateinit var agentButton: Button
+    private lateinit var settingsButton: Button
     private lateinit var speechController: SpeechInputController
     private var pendingVoiceStart = false
 
@@ -47,8 +51,13 @@ class MainActivity : AppCompatActivity() {
         disconnectButton = findViewById(R.id.disconnectButton)
         sendButton = findViewById(R.id.sendButton)
         voiceButton = findViewById(R.id.voiceButton)
+        agentButton = findViewById(R.id.agentButton)
+        settingsButton = findViewById(R.id.settingsButton)
 
         terminalOutput.movementMethod = ScrollingMovementMethod()
+        commandInput.inputType = InputType.TYPE_CLASS_TEXT or
+            InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
 
         speechController = AndroidSpeechInputController(this)
         sshClient = SshClient(
@@ -58,11 +67,14 @@ class MainActivity : AppCompatActivity() {
         )
 
         toggleUi(connected = false, inProgress = false)
+        SshBridge.setSender(isConnected = false, sendFn = null, execFn = null)
         connectButton.setOnClickListener { connect() }
         disconnectButton.setOnClickListener { disconnect() }
         sendButton.setOnClickListener { sendCommand() }
 
         voiceButton.setOnClickListener { startVoiceInput() }
+        agentButton.setOnClickListener { startActivity(Intent(this, ChatActivity::class.java)) }
+        settingsButton.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
     }
 
     override fun onDestroy() {
@@ -137,9 +149,26 @@ class MainActivity : AppCompatActivity() {
             try {
                 toggleUi(connected = false, inProgress = true)
                 sshClient.connect(SshConfig(host, port, user, password))
+                SshBridge.setSender(
+                    isConnected = true,
+                    sendFn = { command ->
+                        lifecycleScope.launch {
+                            try {
+                                sshClient.sendCommand(command)
+                                appendOutput("\n$command\n")
+                            } catch (ex: Exception) {
+                                appendOutput("\n[Fehler: ${ex.message}]\n")
+                            }
+                        }
+                    },
+                    execFn = { command ->
+                        sshClient.execute(command)
+                    }
+                )
                 toggleUi(connected = true, inProgress = false)
             } catch (ex: Exception) {
                 appendOutput("\n[Fehler: ${ex.message}]\n")
+                SshBridge.setSender(isConnected = false, sendFn = null, execFn = null)
                 toggleUi(connected = false, inProgress = false)
             }
         }
@@ -152,6 +181,7 @@ class MainActivity : AppCompatActivity() {
             } catch (ex: Exception) {
                 appendOutput("\n[Fehler: ${ex.message}]\n")
             } finally {
+                SshBridge.setSender(isConnected = false, sendFn = null, execFn = null)
                 toggleUi(connected = false, inProgress = false)
             }
         }
@@ -179,6 +209,7 @@ class MainActivity : AppCompatActivity() {
                 val trimmed = terminalOutput.text.takeLast(maxTerminalChars)
                 terminalOutput.text = trimmed
             }
+            SshBridge.appendOutput(text)
             scrollContainer.post { scrollContainer.fullScroll(NestedScrollView.FOCUS_DOWN) }
         }
     }

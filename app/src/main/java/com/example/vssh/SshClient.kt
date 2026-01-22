@@ -1,5 +1,6 @@
 package com.example.vssh
 
+import com.jcraft.jsch.ChannelExec
 import com.jcraft.jsch.ChannelShell
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
@@ -10,7 +11,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 
 class SshClient(
     private val scope: CoroutineScope,
@@ -69,8 +72,34 @@ class SshClient(
         onStatus("Getrennt.")
     }
 
+    suspend fun execute(command: String): String = withContext(Dispatchers.IO) {
+        val activeSession = session ?: throw IOException("Keine aktive Verbindung")
+        val execChannel = activeSession.openChannel("exec") as ChannelExec
+        execChannel.setCommand(command)
+        execChannel.setInputStream(null)
+        val stdout = BufferedInputStream(execChannel.inputStream)
+        val stderr = BufferedInputStream(execChannel.errStream)
+        execChannel.connect(5_000)
+
+        val deadline = System.currentTimeMillis() + 15_000
+        val output = readUntilClosed(execChannel, stdout, deadline)
+        val error = readUntilClosed(execChannel, stderr, deadline)
+        val timedOut = output.timedOut || error.timedOut
+        execChannel.disconnect()
+
+        val combined = (output.text + error.text).trim()
+        if (timedOut) {
+            return@withContext if (combined.isBlank()) {
+                "[Timeout] Befehl hat zu lange gedauert."
+            } else {
+                "[Timeout] Teilweise Ausgabe:\n$combined"
+            }
+        }
+        combined
+    }
+
     private fun CoroutineScope.readerJob(input: BufferedInputStream): Job {
-        return kotlinx.coroutines.launch(Dispatchers.IO) {
+        return launch(Dispatchers.IO) {
             val buffer = ByteArray(1024)
             while (true) {
                 val count = input.read(buffer)
@@ -80,4 +109,29 @@ class SshClient(
             }
         }
     }
+
+    private fun readUntilClosed(channel: ChannelExec, input: InputStream, deadline: Long): ReadResult {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(1024)
+        while (true) {
+            var readAny = false
+            while (input.available() > 0) {
+                val count = input.read(buffer)
+                if (count <= 0) break
+                output.write(buffer, 0, count)
+                readAny = true
+            }
+            if (System.currentTimeMillis() > deadline) {
+                return ReadResult(output.toString(), true)
+            }
+            if (channel.isClosed && !readAny && input.available() == 0) {
+                break
+            }
+            Thread.sleep(50)
+        }
+        val bytes = output.toByteArray()
+        return ReadResult(String(bytes), false)
+    }
+
+    private data class ReadResult(val text: String, val timedOut: Boolean)
 }

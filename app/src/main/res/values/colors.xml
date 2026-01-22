@@ -1,0 +1,7 @@
+<resources>
+    <color name="vssh_red">#E50914</color>
+    <color name="vssh_black">#141414</color>
+    <color name="vssh_dark">#1F1F1F</color>
+    <color name="vssh_gray">#B3B3B3</color>
+    <color name="vssh_white">#FFFFFF</color>
+</resources>

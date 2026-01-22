@@ -1,0 +1,95 @@
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chatScrollContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/vssh_black"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Agent"
+            android:textColor="@color/vssh_white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.06" />
+
+        <LinearLayout
+            android:id="@+id/chatMessages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical" />
+
+        <EditText
+            android:id="@+id/chatInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:hint="Frage zur Server-Administration..."
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:textColor="@color/vssh_white"
+            android:textColorHint="@color/vssh_gray"
+            android:backgroundTint="@color/vssh_red" />
+
+        <CheckBox
+            android:id="@+id/ttsCheck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:checked="true"
+            android:text="Antworten per TTS vorlesen"
+            android:textColor="@color/vssh_gray" />
+
+        <CheckBox
+            android:id="@+id/includeOutputCheck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:checked="true"
+            android:text="SSH Output als Kontext senden"
+            android:textColor="@color/vssh_gray" />
+
+        <CheckBox
+            android:id="@+id/toolsCheck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:checked="true"
+            android:text="SSH Tools automatisch nutzen (Logs/Status holen)"
+            android:textColor="@color/vssh_gray" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/chatSendButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Senden"
+                android:backgroundTint="@color/vssh_red"
+                android:textColor="@color/vssh_white" />
+
+            <Button
+                android:id="@+id/chatVoiceButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="🎤"
+                android:backgroundTint="@color/vssh_red"
+                android:textColor="@color/vssh_white" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
