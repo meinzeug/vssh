@@ -355,6 +355,13 @@ class ChatActivity : AppCompatActivity() {
         if (lower.contains("login") || lower.contains("anmeldung")) {
             commands.add("last -n 50")
         }
+        if (lower.contains("wer bin ich") || lower.contains("who am i") || lower.contains("aktuellen benutzer") ||
+            lower.contains("current user") || lower.contains("angemeldeten benutzer")) {
+            commands.add("whoami")
+        }
+        if (lower.contains("systeminfo") || lower.contains("kernel") || lower.contains("uname")) {
+            commands.add("uname -a")
+        }
         if (lower.contains("disk") || lower.contains("speicher") || lower.contains("space")) {
             commands.add("df -h")
             commands.add("free -m")
