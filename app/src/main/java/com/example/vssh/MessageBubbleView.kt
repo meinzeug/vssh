@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 
 class MessageBubbleView(context: Context) : LinearLayout(context) {
     private val container = LinearLayout(context)
@@ -21,6 +22,8 @@ class MessageBubbleView(context: Context) : LinearLayout(context) {
         addView(container, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
         button.text = "Send to SSH"
+        button.setBackgroundColor(ContextCompat.getColor(context, R.color.vssh_red))
+        button.setTextColor(ContextCompat.getColor(context, R.color.vssh_white))
         button.visibility = View.GONE
         addView(button, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
     }
