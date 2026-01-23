@@ -59,7 +59,8 @@ class ChatActivity : AppCompatActivity() {
             Du bist vssh, ein Voice-First Linux-Admin-Assistent für die Server-Konsole.
             Antworte klar, kurz und umsetzbar. Wenn der Nutzer etwas ausführen will, liefere
             die passenden Befehle in einem Code-Block (bash). Erkläre in 1-2 Sätzen, was der
-            Befehl macht. Bei riskanten Aktionen: Warnung + Rückfrage.
+            Befehl macht. Bevorzuge lesende Befehle ohne sudo und ohne langlaufende/interaktive Modi
+            (kein journalctl -f, kein tail -f, kein watch). Bei riskanten Aktionen: Warnung + Rückfrage.
         """.trimIndent()
         messages.add(ChatMessage("system", systemPrompt))
 
@@ -106,7 +107,8 @@ class ChatActivity : AppCompatActivity() {
                             ChatMessage(
                                 "system",
                                 "Der Nutzer will einen konkreten Befehl. Antworte mit einem bash Codeblock " +
-                                    "und 1-2 kurzen Sätzen Erklärung. Keine Tools."
+                                    "und 1-2 kurzen Sätzen Erklärung. Nur lesende Befehle, kein sudo, " +
+                                    "keine langlaufenden/\"follow\"-Befehle (kein -f). Keine Tools."
                             )
                         )
                     }
@@ -120,11 +122,16 @@ class ChatActivity : AppCompatActivity() {
                         client.chat(baseUrl, apiKey, model, requestMessages)
                     }
                     if (reply.isNotBlank()) {
-                        messages.add(ChatMessage("assistant", reply))
                         val cmd = extractCommand(reply)
-                        appendMessageBubble(isUser = false, text = reply, command = cmd)
+                        val (safeText, safeCommand) = if (shouldSkipTools(text)) {
+                            sanitizeCommandSuggestion(text, reply, cmd)
+                        } else {
+                            reply to cmd
+                        }
+                        messages.add(ChatMessage("assistant", safeText))
+                        appendMessageBubble(isUser = false, text = safeText, command = safeCommand)
                         if (ttsCheck.isChecked) {
-                            speak(reply)
+                            speak(safeText)
                         }
                     } else {
                         appendMessageBubble(isUser = false, text = "Leere Antwort erhalten.", command = null)
@@ -205,6 +212,45 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
+    private fun sanitizeCommandSuggestion(
+        userText: String,
+        replyText: String,
+        command: String?
+    ): Pair<String, String?> {
+        if (command.isNullOrBlank()) return replyText to null
+        val normalized = command.trim()
+        val hasSudo = normalized.startsWith("sudo ")
+        val hasPipe = normalized.contains("|") || normalized.contains("&&") || normalized.contains(";")
+        val hasFollow = Regex("\\s-f(\\s|$)").containsMatchIn(normalized)
+        val safeList = SshCommandSafety.filter(listOf(normalized))
+        val isSafe = safeList.isNotEmpty() && !hasSudo && !hasPipe && !hasFollow
+        if (isSafe) {
+            val safeCommand = safeList.first().removePrefix("sudo -n ").trim()
+            return if (safeCommand != normalized) {
+                replaceFirstCodeBlock(replyText, safeCommand) to safeCommand
+            } else {
+                replyText to safeCommand
+            }
+        }
+
+        val fallback = defaultCommandsFor(userText).firstOrNull()
+        if (fallback.isNullOrBlank()) return replyText to null
+
+        val safeText = replaceFirstCodeBlock(replyText, fallback)
+        val note = "\n\nHinweis: Der urspruengliche Vorschlag wurde durch einen sicheren, nicht-interaktiven Befehl ersetzt."
+        return (safeText + note) to fallback
+    }
+
+    private fun replaceFirstCodeBlock(text: String, command: String): String {
+        val safeBlock = "```bash\n$command\n```"
+        val blockRegex = Regex("```[\\s\\S]*?```")
+        return if (blockRegex.containsMatchIn(text)) {
+            blockRegex.replaceFirst(text, safeBlock)
+        } else {
+            text + "\n\n" + safeBlock
+        }
+    }
+
     private suspend fun runToolsFlow(baseUrl: String, apiKey: String, model: String, userText: String) {
         val toolSystem = """
             Du bist ein Linux-Admin-Agent. Antworte strikt als JSON ohne Codeblock:
@@ -215,8 +261,10 @@ class ChatActivity : AppCompatActivity() {
             Regeln:
             - commands darf leer sein (dann frage nach Details).
             - Nur sichere, lesende Befehle (keine Writes, keine Pipes/&&/;).
+            - Kein sudo, keine langlaufenden/interactive Befehle (kein -f, kein watch).
             - Erlaubte Befehle: journalctl, last/lastb, who, w, uptime,
-              systemctl status/--failed, df -h, free -m, ss -tulpn, netstat -tulpn,
+              whoami, id, uname -a, systemctl status/--failed, df -h, free -m/free -h,
+              ss -tulpn, netstat -tulpn,
               ps aux, top -b -n 1, sowie cat/tail/head/grep/sed/awk auf /var/log/*.
         """.trimIndent()
 
@@ -351,6 +399,9 @@ class ChatActivity : AppCompatActivity() {
             commands.add("journalctl --since \"yesterday\" --until \"today\" --no-pager -n 200")
             commands.add("last -n 50")
             commands.add("sudo lastb -n 50")
+        }
+        if (wantsLog && !isLastNight) {
+            commands.add("journalctl -xe --no-pager -n 200")
         }
         if (lower.contains("login") || lower.contains("anmeldung")) {
             commands.add("last -n 50")

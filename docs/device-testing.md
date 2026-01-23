@@ -50,3 +50,14 @@ Wenn `adb shell input text` zu fehlerhaft ist, Text über Broadcast setzen:
 - Terminal: `whoami` gibt `root` zurück
 - Agent‑Tools‑Flow: Frage “Was war letzte Nacht auf dem Server?” liefert Zusammenfassung
 - TTS: Antwort wurde vorgelesen (SamsungTTS Log sichtbar)
+
+## Testlauf 23. Jan 2026 (ADB, USB‑Device)
+- App installiert via `./gradlew installDebug`, Start via `adb shell am start -n com.example.vssh/.MainActivity`.
+- Agent gestartet via UI, Frage: `Welches_Kommando_zeigt_logs`.
+  Ergebnis: sicherer, nicht-interaktiver Befehl (`tail -n 50 /var/log/syslog`) im Codeblock.
+- Folgefrage: `Systeminfo` -> Antwort mit `uname -a` Codeblock.
+- STT getestet (ohne Sprache) -> klarere Fehlermeldungen sichtbar.
+- Screenshots:
+  - `screen_new_agent_logs_cmd6.png` (Logs-Command)
+  - `screen_new_agent_sysinfo_answer.png` (Systeminfo-Command)
+  - `screen_new_agent_stt_error2.png` (STT Fehler)
