@@ -165,7 +165,15 @@ class ChatActivity : AppCompatActivity() {
             ?.groupValues
             ?.get(1)
         if (!codeBlock.isNullOrBlank()) {
-            return codeBlock.trim()
+            val lines = codeBlock.trim().lines()
+            if (lines.isEmpty()) return null
+            val first = lines.first().trim().lowercase()
+            val cleaned = if (first in listOf("bash", "sh", "shell")) {
+                lines.drop(1)
+            } else {
+                lines
+            }
+            return cleaned.joinToString("\n").trim().ifEmpty { null }
         }
         val firstLine = text.lines().firstOrNull { it.isNotBlank() }?.trim() ?: return null
         return when {
