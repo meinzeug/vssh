@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsButton: Button
     private lateinit var speechController: SpeechInputController
     private var pendingVoiceStart = false
+    private var isListening = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,12 +117,15 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        setListening(true)
         speechController.startListening(
             onResult = { text ->
+                setListening(false)
                 commandInput.setText(text)
                 sendCommand()
             },
             onError = { error ->
+                setListening(false)
                 appendOutput("\n[STT Fehler: $error]\n")
             }
         )
@@ -214,10 +218,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setListening(active: Boolean) {
+        isListening = active
+        voiceButton.isEnabled = !active && speechController.isAvailable()
+        voiceButton.text = if (active) "..." else "VOICE (STT)"
+    }
+
     private fun toggleUi(connected: Boolean, inProgress: Boolean) {
         connectButton.isEnabled = !connected && !inProgress
         disconnectButton.isEnabled = connected && !inProgress
         sendButton.isEnabled = connected && !inProgress
-        voiceButton.isEnabled = connected && !inProgress && speechController.isAvailable()
+        voiceButton.isEnabled = connected && !inProgress && speechController.isAvailable() && !isListening
     }
 }
