@@ -32,6 +32,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var speechController: SpeechInputController
     private var pendingVoiceStart = false
     private var tts: TextToSpeech? = null
+    private var isListening = false
 
     private val messages = mutableListOf<ChatMessage>()
     private val client = OpenRouterClient()
@@ -380,12 +381,15 @@ class ChatActivity : AppCompatActivity() {
             return
         }
 
+        setListening(true)
         speechController.startListening(
             onResult = { text ->
+                setListening(false)
                 chatInput.setText(text)
                 sendMessage()
             },
             onError = { error ->
+                setListening(false)
                 appendMessageBubble(isUser = false, text = "STT Fehler: $error", command = null)
             }
         )
@@ -420,6 +424,12 @@ class ChatActivity : AppCompatActivity() {
         val engine = tts ?: return
         engine.stop()
         engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "agent-reply")
+    }
+
+    private fun setListening(active: Boolean) {
+        isListening = active
+        voiceButton.isEnabled = !active && speechController.isAvailable()
+        voiceButton.text = if (active) "..." else "🎤"
     }
 
     override fun onDestroy() {
