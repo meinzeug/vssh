@@ -140,7 +140,7 @@ class ChatActivity : AppCompatActivity() {
     private fun shouldSkipTools(text: String): Boolean {
         val lower = text.lowercase()
         return listOf(
-            "befehl", "command", "syntax", "beispiel", "wie mache", "how to", "how do"
+            "befehl", "kommando", "command", "syntax", "beispiel", "wie mache", "how to", "how do"
         ).any { lower.contains(it) }
     }
 
