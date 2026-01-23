@@ -4,9 +4,10 @@ object SshCommandSafety {
     private val allowedPatterns = listOf(
         Regex("^journalctl\\b.*", RegexOption.IGNORE_CASE),
         Regex("^lastb?(\\s|$).*") ,
-        Regex("^(who|w|uptime)(\\s|$).*") ,
+        Regex("^(who|w|uptime|whoami|id)(\\s|$).*") ,
+        Regex("^uname\\s+-a(\\s|$).*", RegexOption.IGNORE_CASE),
         Regex("^systemctl\\s+(status|--failed)\\b.*", RegexOption.IGNORE_CASE),
-        Regex("^(df\\s+-h|free\\s+-m)(\\s|$).*") ,
+        Regex("^(df\\s+-h|free\\s+-(m|h))(\\s|$).*") ,
         Regex("^(ss|netstat)\\s+-tulpn\\b.*", RegexOption.IGNORE_CASE),
         Regex("^ps\\s+aux\\b.*", RegexOption.IGNORE_CASE),
         Regex("^top\\s+-b\\s+-n\\s+1\\b.*", RegexOption.IGNORE_CASE),
