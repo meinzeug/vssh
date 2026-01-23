@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import android.text.InputType
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -47,6 +48,11 @@ class ChatActivity : AppCompatActivity() {
         includeOutputCheck = findViewById(R.id.includeOutputCheck)
         ttsCheck = findViewById(R.id.ttsCheck)
         toolsCheck = findViewById(R.id.toolsCheck)
+
+        chatInput.inputType = InputType.TYPE_CLASS_TEXT or
+            InputType.TYPE_TEXT_FLAG_MULTI_LINE or
+            InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
 
         val systemPrompt = """
             Du bist vssh, ein Voice-First Linux-Admin-Assistent für die Server-Konsole.
