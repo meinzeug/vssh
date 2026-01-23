@@ -100,6 +100,15 @@ class ChatActivity : AppCompatActivity() {
                     runToolsFlow(baseUrl, apiKey, model, text)
                 } else {
                     val requestMessages = messages.toMutableList()
+                    if (shouldSkipTools(text)) {
+                        requestMessages.add(
+                            ChatMessage(
+                                "system",
+                                "Der Nutzer will einen konkreten Befehl. Antworte mit einem bash Codeblock " +
+                                    "und 1-2 kurzen Sätzen Erklärung. Keine Tools."
+                            )
+                        )
+                    }
                     if (includeOutputCheck.isChecked) {
                         val output = SshBridge.getRecentOutput().trim()
                         if (output.isNotEmpty()) {
@@ -182,6 +191,10 @@ class ChatActivity : AppCompatActivity() {
                 lines
             }
             return cleaned.joinToString("\n").trim().ifEmpty { null }
+        }
+        val inline = Regex("`([^`]+)`").find(text)?.groupValues?.get(1)
+        if (!inline.isNullOrBlank()) {
+            return inline.trim().ifEmpty { null }
         }
         val firstLine = text.lines().firstOrNull { it.isNotBlank() }?.trim() ?: return null
         return when {
