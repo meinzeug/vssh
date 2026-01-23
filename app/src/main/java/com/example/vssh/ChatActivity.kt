@@ -95,7 +95,8 @@ class ChatActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val toolsEnabled = toolsCheck.isChecked && SshBridge.canExecute()
-                if (toolsEnabled) {
+                val useTools = toolsEnabled && !shouldSkipTools(text)
+                if (useTools) {
                     runToolsFlow(baseUrl, apiKey, model, text)
                 } else {
                     val requestMessages = messages.toMutableList()
@@ -125,6 +126,13 @@ class ChatActivity : AppCompatActivity() {
                 toggleUi(loading = false)
             }
         }
+    }
+
+    private fun shouldSkipTools(text: String): Boolean {
+        val lower = text.lowercase()
+        return listOf(
+            "befehl", "command", "syntax", "beispiel", "wie mache", "how to", "how do"
+        ).any { lower.contains(it) }
     }
 
     private fun appendMessageBubble(isUser: Boolean, text: String, command: String?) {
